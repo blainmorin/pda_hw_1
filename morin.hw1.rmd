@@ -1,0 +1,61 @@
+---
+title: "PHP 2550: Assignment 1"
+author: "Blain Morin"
+date: "September 13, 2018"
+output: 
+  html_document:
+    theme: "simplex"
+---
+
+```{r, include=FALSE}
+
+### Load packages
+library(knitr)
+library(dplyr)
+library(readr)
+library(sjPlot)
+library(kableExtra)
+
+```
+
+
+# Problem #1
+
+First we construct a data set with just the first observation for each individual:
+
+```{r, message=FALSE, warning=FALSE}
+
+### Read in data
+mcalindon = read_csv("McAlindon_Big.csv")
+
+```
+
+```{r}
+
+### Get only the first observation for each id
+first.ob = mcalindon %>%
+  group_by(ID) %>%
+  slice(1) %>%
+  ungroup()
+
+```
+
+### a.) Summarize the average pain score for each of the 7 days of the study.
+
+```{r}
+
+### Take the mean of each pain column and put it in the table "ave.pains"
+ave.pains = first.ob %>%
+  summarise(mean.p1 = mean(pain.1, na.rm = TRUE),
+            mean.p2 = mean(pain.2, na.rm = TRUE),
+            mean.p3 = mean(pain.3, na.rm = TRUE),
+            mean.p4 = mean(pain.4, na.rm =TRUE),
+            mean.p5 = mean(pain.5, na.rm = TRUE),
+            mean.p6 = mean(pain.6, na.rm = TRUE),
+            mean.p7 = mean(pain.7, na.rm = TRUE))
+
+kable(ave.pains) %>%
+  kable_styling() %>% 
+  footnote(general = "Means for each perios are calculated with NA values removed.")
+
+```
