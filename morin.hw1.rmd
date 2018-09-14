@@ -190,4 +190,16 @@ grid.arrange(hist.slopes, hist.ints, nrow = 1)
 
 ```
 
+### d.) Are the slopes or intercepts related to any of the patient characteristics (age, race, income, treatment, sex,  occupation, working status, use of NSAIDs)?
 
+```{r}
+
+slope.reg = lm(slope ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat + as.factor(sex) + nsaid +
+                as.factor(retire) + opiate + as.factor(severe2), data = indy.regs)
+
+int.reg = lm(ints ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat + as.factor(sex) + nsaid +
+                   as.factor(retire) + opiate + as.factor(severe2), data = indy.regs)
+
+summary(slope.reg)
+sjt.lm(slope.reg)
+```
