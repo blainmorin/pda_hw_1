@@ -4,7 +4,7 @@ author: "Blain Morin"
 date: "September 13, 2018"
 output: 
   html_document:
-    theme: "simplex"
+    theme: "flatly"
 ---
 
 ```{r, include=FALSE}
@@ -15,13 +15,18 @@ library(dplyr)
 library(readr)
 library(sjPlot)
 library(kableExtra)
+library(tidyr)
+library(ggplot2)
+library(gmodels)
+library(grid)
+library(gridExtra)
 
 ```
 
 
 # Problem #1
 
-First we construct a data set with just the first observation for each individual:
+**First we construct a data set with just the first observation for each individual:**
 
 ```{r, message=FALSE, warning=FALSE}
 
@@ -49,13 +54,140 @@ ave.pains = first.ob %>%
   summarise(mean.p1 = mean(pain.1, na.rm = TRUE),
             mean.p2 = mean(pain.2, na.rm = TRUE),
             mean.p3 = mean(pain.3, na.rm = TRUE),
-            mean.p4 = mean(pain.4, na.rm =TRUE),
+            mean.p4 = mean(pain.4, na.rm = TRUE),
             mean.p5 = mean(pain.5, na.rm = TRUE),
             mean.p6 = mean(pain.6, na.rm = TRUE),
             mean.p7 = mean(pain.7, na.rm = TRUE))
 
+```
+
+**Here are the average pain measurements for each of the seven periods:**
+
+```{r, echo = FALSE}
 kable(ave.pains) %>%
   kable_styling() %>% 
-  footnote(general = "Means for each perios are calculated with NA values removed.")
+  footnote(general = "Means for each period are calculated with NA values removed.")
+```
+
+### b.) Regress each pain score on age and use the summary function to create a summary table for each regression. Then use the confint function to find the 95% confidence interval for the regression slopes and produce a table with the estimates, standard errors, p-values and confidence intervals of the 7 slopes and put these in a single table.
+
+```{r, warning = FALSE}
+
+### Regress each pain score on age
+painreg1 = lm(pain.1 ~ age, data = first.ob)
+painreg2 = lm(pain.2 ~ age, data = first.ob)
+painreg3 = lm(pain.3 ~ age, data = first.ob)
+painreg4 = lm(pain.4 ~ age, data = first.ob)
+painreg5 = lm(pain.5 ~ age, data = first.ob)
+painreg6 = lm(pain.6 ~ age, data = first.ob)
+painreg7 = lm(pain.7 ~ age, data = first.ob)
 
 ```
+
+**Here are estimates, standard errors, p-values and confidence intervals for each of the regressions:**
+
+```{r, message=FALSE, echo=FALSE, warning=FALSE}
+sjt.lm(painreg1,
+       painreg2,
+       painreg3,
+       show.se = TRUE,
+       show.r2 = FALSE)
+
+sjt.lm(painreg4,
+       painreg5,
+       painreg6,
+       show.se = TRUE,
+       show.r2 = FALSE)
+
+sjt.lm(painreg7,
+       show.se = TRUE,
+       show.r2 = FALSE)
+```
+
+### c.) For each individual fit a regression of pain on time. Summarize the slopes and intercepts produced. 
+
+```{r, warning = FALSE, message=FALSE, fig.width=12}
+
+get.ints = function (p1, p2, p3, p4, p5, p6, p7, d1, d2, d3, d4, d5, d6, d7) {
+  
+  data.reg = data.frame(pain = c(p1,p2,p3,p4,p5,p6,p7),
+                        day = c(d1,d2,d3,d4,d5,d6,d7))
+  
+  reg = lm(pain ~ day, data = data.reg)
+  return(coef(reg)[1])
+  
+}
+
+get.slopes = function (p1, p2, p3, p4, p5, p6, p7, d1, d2, d3, d4, d5, d6, d7) {
+  
+  data.reg = data.frame(pain = c(p1,p2,p3,p4,p5,p6,p7),
+                        day = c(d1,d2,d3,d4,d5,d6,d7))
+  
+  reg = lm(pain ~ day, data = data.reg)
+  return(coef(reg)[2])
+  
+}
+
+indy.regs = first.ob %>% group_by(ID) %>%
+  mutate(slope = get.slopes(p1 = pain.1,
+                            p2 = pain.2,
+                            p3 = pain.3,
+                            p4 = pain.4,
+                            p5 = pain.5,
+                            p6 = pain.6,
+                            p7 = pain.7,
+                            d1 = lastdt1,
+                            d2 = lastdt2,
+                            d3 = lastdt3,
+                            d4 = lastdt4,
+                            d5 = lastdt5,
+                            d6 = lastdt6,
+                            d7 = lastdt7),
+         ints = get.ints(p1 = pain.1,
+                            p2 = pain.2,
+                            p3 = pain.3,
+                            p4 = pain.4,
+                            p5 = pain.5,
+                            p6 = pain.6,
+                            p7 = pain.7,
+                            d1 = lastdt1,
+                            d2 = lastdt2,
+                            d3 = lastdt3,
+                            d4 = lastdt4,
+                            d5 = lastdt5,
+                            d6 = lastdt6,
+                            d7 = lastdt7))
+
+hist.slopes = indy.regs %>%
+  ggplot(aes(x = slope)) + 
+  geom_histogram(bins = 20) +
+  geom_vline(aes(xintercept=mean(indy.regs$slope, na.rm = TRUE),color="mean"),
+             linetype="dashed",
+             size=1) +
+  xlab("Slope Coefficient") +
+  ylab("Count") +
+  ggtitle("Histogram of Slope Coefficients") +
+  theme_minimal() +
+  scale_color_manual( labels = c(paste("Mean = ", round(mean(indy.regs$slope, na.rm = TRUE), digits = 3))), 
+                      name = "Legend: ", values = c(mean = "red")) +
+  theme(legend.position = "bottom")
+
+hist.ints = indy.regs %>%
+  ggplot(aes(x = ints)) + 
+  geom_histogram(bins = 20) +
+  geom_vline(aes(xintercept=mean(indy.regs$ints, na.rm = TRUE), color="mean"),
+             linetype="dashed",
+             size=1) +
+  xlab("Intercept Value") +
+  ylab("Count") +
+  ggtitle("Histogram of Intercepts") +
+  theme_minimal() +
+  scale_color_manual( labels = c(paste("Mean = ", round(mean(indy.regs$ints, na.rm = TRUE), digits = 3))), 
+                      name = "Legend: ", values = c(mean = "red")) +
+  theme(legend.position = "bottom")
+
+grid.arrange(hist.slopes, hist.ints, nrow = 1)
+
+```
+
+
