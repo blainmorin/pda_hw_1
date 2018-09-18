@@ -797,66 +797,9 @@ grid.arrange(hist.slopes, hist.ints, nrow = 1)</code></pre>
 int.reg = lm(ints ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat + as.factor(sex) + nsaid +
                    as.factor(retire) + opiate + as.factor(severe2), data = indy.regs)
 
-summary(slope.reg)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = slope ~ as.factor(Race) + age + as.factor(inccat) + 
-##     bmi + treat + as.factor(sex) + nsaid + as.factor(retire) + 
-##     opiate + as.factor(severe2), data = indy.regs)
-## 
-## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -0.11288 -0.03593 -0.00110  0.02902  0.16340 
-## 
-## Coefficients:
-##                                        Estimate Std. Error t value
-## (Intercept)                          -0.2058004  0.1009577  -2.038
-## as.factor(Race)Native American        0.0808938  0.0825819   0.980
-## as.factor(Race)Other                 -0.0220828  0.0879153  -0.251
-## as.factor(Race)White                  0.0235689  0.0718911   0.328
-## as.factor(Race)White Hispanic         0.0326352  0.0820209   0.398
-## as.factor(Race)White Hispanic, Asian  0.0852074  0.0812018   1.049
-## as.factor(Race)White Non-Hispanic     0.0499352  0.0583901   0.855
-## age                                   0.0015479  0.0009767   1.585
-## as.factor(inccat)2                    0.0431836  0.0209832   2.058
-## as.factor(inccat)3                    0.0245640  0.0223874   1.097
-## as.factor(inccat)4                    0.0228034  0.0260733   0.875
-## as.factor(inccat)5                    0.0315331  0.0262917   1.199
-## bmi                                   0.0009149  0.0007738   1.182
-## treat                                 0.0021611  0.0142010   0.152
-## as.factor(sex)2                       0.0021678  0.0142129   0.153
-## nsaid                                -0.0256638  0.0202103  -1.270
-## as.factor(retire)2                   -0.0230428  0.0189645  -1.215
-## opiate                                0.0417716  0.0307211   1.360
-## as.factor(severe2)2                   0.0010699  0.0151983   0.070
-##                                      Pr(&gt;|t|)  
-## (Intercept)                            0.0452 *
-## as.factor(Race)Native American         0.3306  
-## as.factor(Race)Other                   0.8024  
-## as.factor(Race)White                   0.7440  
-## as.factor(Race)White Hispanic          0.6919  
-## as.factor(Race)White Hispanic, Asian   0.2976  
-## as.factor(Race)White Non-Hispanic      0.3953  
-## age                                    0.1175  
-## as.factor(inccat)2                     0.0433 *
-## as.factor(inccat)3                     0.2763  
-## as.factor(inccat)4                     0.3847  
-## as.factor(inccat)5                     0.2344  
-## bmi                                    0.2410  
-## treat                                  0.8795  
-## as.factor(sex)2                        0.8792  
-## nsaid                                  0.2083  
-## as.factor(retire)2                     0.2284  
-## opiate                                 0.1782  
-## as.factor(severe2)2                    0.9441  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 0.05557 on 71 degrees of freedom
-##   (115 observations deleted due to missingness)
-## Multiple R-squared:  0.1501, Adjusted R-squared:  -0.06536 
-## F-statistic: 0.6967 on 18 and 71 DF,  p-value: 0.8031</code></pre>
-<pre class="r"><code>sjt.lm(slope.reg)</code></pre>
+
+sjt.lm(slope.reg, int.reg)</code></pre>
+<pre><code>## `sjt.lm()` and `sjt.lmer()` will become deprecated in the future. Please use `tab_model()` instead.</code></pre>
 <table style="border-collapse:collapse; border:none;border-bottom:double;">
 <td style="padding:0.2cm; border-top:double;">
  
@@ -867,10 +810,28 @@ summary(slope.reg)</code></pre>
 <td style="padding:0.2cm; text-align:center; border-bottom:1px solid; border-top:double;" colspan="3">
 slope
 </td>
+<td style="border-bottom:1px solid; padding-left:0.5em; padding-right:0.5em; border-top:double;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; border-bottom:1px solid; border-top:double;" colspan="3">
+ints
+</td>
 </tr>
 <tr>
 <td style="padding:0.2cm; font-style:italic;">
  
+</td>
+<td style="padding-left:0.5em; padding-right:0.5em; font-style:italic;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; font-style:italic; ">
+B
+</td>
+<td style="padding:0.2cm; text-align:center; font-style:italic; ">
+CI
+</td>
+<td style="padding:0.2cm; text-align:center; font-style:italic; ">
+p
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; font-style:italic;">
  
@@ -901,9 +862,21 @@ p
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
 .045
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
+49.73
+</td>
+<td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
+9.13 – 90.33
+</td>
+<td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
+.017
+</td>
 </tr>
 <tr>
-<td style="padding:0.2cm;" colspan="5">
+<td style="padding:0.2cm;" colspan="9">
 as.factor(Race)
 </td>
 </tr>
@@ -923,6 +896,18 @@ Native American
 <td style="padding:0.2cm; text-align:center; ">
 .331
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-4.45
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-37.96 – 29.05
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.792
+</td>
 </tr>
 <tr>
 <td style="font-style:italic; padding:0.2cm; padding-left:0.6cm; text-align:left;">
@@ -939,6 +924,18 @@ Other
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 .802
+</td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-13.12
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-48.80 – 22.56
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.466
 </td>
 </tr>
 <tr>
@@ -957,6 +954,18 @@ White
 <td style="padding:0.2cm; text-align:center; ">
 .744
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+0.37
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-28.81 – 29.55
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.980
+</td>
 </tr>
 <tr>
 <td style="font-style:italic; padding:0.2cm; padding-left:0.6cm; text-align:left;">
@@ -973,6 +982,18 @@ White Hispanic
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 .692
+</td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-3.59
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-36.86 – 29.67
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.830
 </td>
 </tr>
 <tr>
@@ -991,6 +1012,18 @@ White Hispanic, Asian
 <td style="padding:0.2cm; text-align:center; ">
 .298
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-12.71
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-45.65 – 20.24
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.445
+</td>
 </tr>
 <tr>
 <td style="font-style:italic; padding:0.2cm; padding-left:0.6cm; text-align:left;">
@@ -1007,6 +1040,18 @@ White Non-Hispanic
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 .395
+</td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-6.91
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-30.60 – 16.77
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.563
 </td>
 </tr>
 <tr>
@@ -1025,9 +1070,21 @@ age
 <td style="padding:0.2cm; text-align:center; ">
 .117
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-0.43
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-0.82 – -0.03
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.035
+</td>
 </tr>
 <tr>
-<td style="padding:0.2cm;" colspan="5">
+<td style="padding:0.2cm;" colspan="9">
 as.factor(inccat)
 </td>
 </tr>
@@ -1047,6 +1104,18 @@ as.factor(inccat)
 <td style="padding:0.2cm; text-align:center; ">
 .043
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-6.05
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-14.18 – 2.07
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.142
+</td>
 </tr>
 <tr>
 <td style="font-style:italic; padding:0.2cm; padding-left:0.6cm; text-align:left;">
@@ -1063,6 +1132,18 @@ as.factor(inccat)
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 .276
+</td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-3.52
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-12.19 – 5.15
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.421
 </td>
 </tr>
 <tr>
@@ -1081,6 +1162,18 @@ as.factor(inccat)
 <td style="padding:0.2cm; text-align:center; ">
 .385
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-0.69
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-11.04 – 9.66
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.895
+</td>
 </tr>
 <tr>
 <td style="font-style:italic; padding:0.2cm; padding-left:0.6cm; text-align:left;">
@@ -1097,6 +1190,18 @@ as.factor(inccat)
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 .234
+</td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-3.73
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-14.10 – 6.65
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.477
 </td>
 </tr>
 <tr>
@@ -1115,6 +1220,18 @@ bmi
 <td style="padding:0.2cm; text-align:center; ">
 .241
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+0.08
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-0.23 – 0.40
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.597
+</td>
 </tr>
 <tr>
 <td style="padding:0.2cm; text-align:left;">
@@ -1131,6 +1248,18 @@ treat
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 .879
+</td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-1.86
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-7.57 – 3.84
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.517
 </td>
 </tr>
 <tr>
@@ -1149,6 +1278,18 @@ as.factor(sex) (2)
 <td style="padding:0.2cm; text-align:center; ">
 .879
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-1.40
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-7.16 – 4.37
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.631
+</td>
 </tr>
 <tr>
 <td style="padding:0.2cm; text-align:left;">
@@ -1165,6 +1306,18 @@ nsaid
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 .208
+</td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-2.02
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-10.18 – 6.13
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.623
 </td>
 </tr>
 <tr>
@@ -1183,6 +1336,18 @@ as.factor(retire) (2)
 <td style="padding:0.2cm; text-align:center; ">
 .228
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+4.45
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-3.22 – 12.12
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.251
+</td>
 </tr>
 <tr>
 <td style="padding:0.2cm; text-align:left;">
@@ -1199,6 +1364,18 @@ opiate
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 .178
+</td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-7.72
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-20.19 – 4.74
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.221
 </td>
 </tr>
 <tr>
@@ -1217,6 +1394,18 @@ as.factor(severe2) (2)
 <td style="padding:0.2cm; text-align:center; ">
 .944
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-1.09
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+-7.25 – 5.08
+</td>
+<td style="padding:0.2cm; text-align:center; ">
+.726
+</td>
 </tr>
 <tr>
 <td style="padding:0.2cm; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;">
@@ -1227,6 +1416,12 @@ Observations
 </td>
 <td style="padding:0.2cm; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center; border-top:1px solid;" colspan="3">
 90
+</td>
+<td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid;">
+ 
+</td>
+<td style="padding:0.2cm; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center; border-top:1px solid;" colspan="3">
+91
 </td>
 </tr>
 <tr>
@@ -1239,8 +1434,17 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 <td style="padding:0.2cm; text-align:center; padding-top:0.1cm; padding-bottom:0.1cm;" colspan="3">
 .150 / -.065
 </td>
+<td style="padding-left:0.5em; padding-right:0.5em;">
+ 
+</td>
+<td style="padding:0.2cm; text-align:center; padding-top:0.1cm; padding-bottom:0.1cm;" colspan="3">
+.165 / -.044
+</td>
 </tr>
 </table>
+</div>
+<div id="e.-for-each-individual-compute-the-correlation-between-pain-scores-and-average-temperature-on-the-dates-the-pain-scores-were-taken-and-constuct-a-graph-to-display-these-correlations.-discuss-whether-pain-is-correlated-with-temperature." class="section level3">
+<h3>e.) For each individual, compute the correlation between pain scores and average temperature on the dates the pain scores were taken and constuct a graph to display these correlations. Discuss whether pain is correlated with temperature.</h3>
 </div>
 </div>
 

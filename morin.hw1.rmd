@@ -200,6 +200,57 @@ slope.reg = lm(slope ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat +
 int.reg = lm(ints ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat + as.factor(sex) + nsaid +
                    as.factor(retire) + opiate + as.factor(severe2), data = indy.regs)
 
-summary(slope.reg)
-sjt.lm(slope.reg)
+
+sjt.lm(slope.reg, int.reg)
+
+```
+
+### e.) For each individual, compute the correlation between pain scores and average temperature on the dates the pain scores were taken and constuct a graph to display these correlations. Discuss whether pain is correlated with temperature.
+
+```{r}
+
+weather = mcalindon %>%
+  select(ID, WeatherDate, avgtemp)
+
+pains = mcalindon %>%
+  select(ID, pain.1, pain.2, pain.3, pain.4, pain.4, pain.5, pain.6, pain.7) %>%
+  group_by(ID) %>%
+  slice(1) 
+  
+pains = pains %>%
+  gather(key = pain.time, value = pain.score, pain.1:pain.7 ) %>%
+  group_by(ID) %>%
+  mutate( index = row_number(ID))
+
+days = mcalindon %>%
+  select(ID, lastdt1, lastdt2, lastdt3, lastdt4, lastdt5, lastdt6, lastdt7) %>%
+  group_by(ID) %>%
+  slice(1)
+
+days = days %>%
+  gather(key = time.name, value = day, lastdt1:lastdt7) %>%
+  mutate(index = row_number(ID))
+
+pain.w.days = pains %>%
+  inner_join(days)
+
+pain.day.temp = pain.w.days %>%
+  rename(WeatherDate = day) %>%
+  inner_join(weather)
+
+pain.day.temp = pain.day.temp %>%
+  group_by(ID) %>%
+  mutate(correlation = cor(pain.score, avgtemp, use = "complete.obs"))
+
+
+only.cor = pain.day.temp %>%
+  select(ID, correlation) %>%
+  group_by(ID) %>%
+  slice(1)
+
+hist.cor = only.cor %>%
+  ggplot(aes(x = correlation)) +
+  geom_histogram(bins = 15)
+
+hist.cor
 ```
