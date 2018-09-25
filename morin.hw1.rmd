@@ -207,7 +207,7 @@ sjt.lm(slope.reg, int.reg)
 
 ### e.) For each individual, compute the correlation between pain scores and average temperature on the dates the pain scores were taken and constuct a graph to display these correlations. Discuss whether pain is correlated with temperature.
 
-```{r, message = FALSE}
+```{r, message = FALSE, warning = FALSE}
 
 weather = mcalindon %>%
   select(ID, WeatherDate, avgtemp)
@@ -250,7 +250,7 @@ only.cor = pain.day.temp %>%
 
 hist.cor = only.cor %>%
   ggplot(aes(x = correlation)) +
-  geom_histogram(bins = 15) +
+  geom_histogram(binwidth = .1) +
   geom_vline(aes(xintercept=mean(only.cor$correlation, na.rm = TRUE), color="mean"),
              linetype="dashed",
              size=1) +
@@ -260,8 +260,22 @@ hist.cor = only.cor %>%
   theme_minimal() +
   scale_color_manual( labels = c(paste("Mean = ", round(mean(only.cor$correlation, na.rm = TRUE), digits = 3))), 
                       name = "Legend: ", values = c(mean = "red")) +
-  theme(legend.position = "right")
+  theme(legend.position = "right") +
+  labs(caption = "Note: individuals with only one observation are excluded (cannot calculate correlation)")
 
 
 hist.cor
+
+```
+
+# Problem 2
+
+### In the paper by Wang et al. (paper #10 in your syllabus), reproduce Table 2 using just the outcome data without trying to fit the mixed model. In other words, the differences at each time in the two treatment groups should be calculated just as a difference in means with a corresponding confidence interval. It is easist if you fit a simple linear model to produce the effects at each time for each difference compared to baseline. You can then also find the difference of the differences to compare treated and control.  
+
+```{r}
+
+wang <- read_csv("Wang.csv")
+
+### need to put in long format!
+
 ```
