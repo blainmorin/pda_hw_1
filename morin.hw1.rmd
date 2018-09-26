@@ -51,7 +51,7 @@ first.ob = mcalindon %>%
 
 ### a.) Summarize the average pain score for each of the 7 days of the study.
 
-First we constructed a data set with only the first observation for each individual. We then calculated the mean for each of the seven periods.  
+First, we constructed a dataset with only the first observation for each individual. We then calculated the mean for each of the seven periods.  
 
 ```{r, echo = FALSE}
 
@@ -124,11 +124,11 @@ stargazer(painreg7,
 ```
 
 
-The constant is the average pain score for the mean age. Notice that this matches the values from part (a). The coefficient for age can be interpretted as the average decrease in pain for each additional year. The age coefficient is only significant at the 10% level for time period 5 and 7. 
+The constant is the average pain score for the mean age. Notice that this matches the values from part (a). The coefficient for age can be interpreted as the average decrease in pain for each additional year. The age coefficient is only significant at the 10% level for time period 5 and 7. 
 
 ### c.) For each individual fit a regression of pain on time. Summarize the slopes and intercepts produced. 
 
-First we put the data in long format. Then, we grouped it by individuals and ran individual regressions (pain regressed on day) for each person. The intercept is interpretted as the pain at baseline. The day coefficient is the average increase or decrease in pain per day. Here are the histograms for the intercepts and day coefficients: 
+First we put the data in long format. Then, we grouped it by individuals and ran individual regressions (pain regressed on day) for each person. The intercept is interpreted as the pain at baseline. The day coefficient is the average increase or decrease in pain per day. Here are the histograms for the intercepts and day coefficients: 
 
 ```{r, warning = FALSE, message=FALSE, fig.width=10, fig.height=10, echo = FALSE}
 
@@ -216,7 +216,7 @@ grid.arrange(hist.slopes, hist.ints, nrow = 2)
 
 ```
 
-We see that the mean slope coefficient for day is -.024 and that most of the slopes fall in the -.1 to .1 range. Since zero is in this range, this may suggest that there is no time trend in pain in our data. The mean intercept (baseline pain) is 11.71. Most of these intercepts are in the range from 0 to 20. The negative interecepts likely come from extrapolations from people with missing early observations. 
+We see that the mean slope coefficient for day is -.024 and that most of the slopes fall in the -.1 to .1 range. Since zero is in this range, this may suggest that there is no time trend in pain in our data. The mean intercept (baseline pain) is 11.71. Most of these intercepts are in the range of 0 to 20. The negative intercepts likely come from extrapolations from people with missing early observations. 
 
 ### d.) Are the slopes or intercepts related to any of the patient characteristics (age, race, income, treatment, sex,  occupation, working status, use of NSAIDs)?
 
@@ -245,7 +245,7 @@ The only variable that had a significant effect at the .05 level on the intercep
 
 ### e.) For each individual, compute the correlation between pain scores and average temperature on the dates the pain scores were taken and constuct a graph to display these correlations. Discuss whether pain is correlated with temperature.
 
-To answer this question, we put the data in long format and joined it with the average temperature for each indivual on the day that the pain score was taken. Here is a histogram of the calculated correlations: 
+To answer this question, we put the data in long format and joined it with the average temperature for each individual on the day that the pain score was taken. Here is a histogram of the calculated correlations: 
 
 ```{r, message = FALSE, warning = FALSE, echo = FALSE}
 
@@ -320,7 +320,7 @@ We see that the mean correlation is .12, which suggests that there is no linear 
 
 ### In the paper by Wang et al. (paper #10 in your syllabus), reproduce Table 2 using just the outcome data without trying to fit the mixed model. In other words, the differences at each time in the two treatment groups should be calculated just as a difference in means with a corresponding confidence interval. It is easist if you fit a simple linear model to produce the effects at each time for each difference compared to baseline. You can then also find the difference of the differences to compare treated and control. 
 
-To calculate the values in the table, we first put the data in long format. For each of the outcomes we ran three linear models. We used time as a categorical variable. To get column 1, we regress the outcome on time, for those in the Tai Chi group. To get column 2, we regressed the outcome on time, for those in the attention control group. To get the differences, we used an interaction term: we regressed the outcome on time + treatment + time * treatment. 
+To calculate the values in the table, we first put the data in long format. For each of the outcomes, we ran three linear models. We used time as a categorical variable. To get column 1, we regress the outcome on time, for those in the Tai Chi group. To get column 2, we regressed the outcome on time, for those in the attention control group. To get the differences, we used an interaction term: we regressed the outcome on time + treatment + time * treatment. 
 
 ```{r, echo = FALSE}
 
@@ -435,6 +435,8 @@ group_rows(kabcomplete, index = grouprowslength, escape = F)
 
 
 ```
+
+We see in the table that the many of the significant differences between the groups occurred at the first follow-up at week 12. The significant outcomes at the .05 level at week 12 were WOMAC pain, WOMAC physical function, patient global VAS range and chair stand time. The significant outcome at week 24 and week 48 was only self efficacy-score.      
 
 #  
 
