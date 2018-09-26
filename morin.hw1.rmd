@@ -8,7 +8,6 @@ output:
 ---
 
 ```{r, include=FALSE, message = FALSE}
-knitr::opts_chunk$set(fig.pos = 'H')
 
 ### Load packages
 library(knitr)
@@ -24,6 +23,9 @@ library(stargazer)
 library(gridExtra)
 library(extrafont)
 library(extrafontdb)
+
+
+
 
 ```
 
@@ -214,7 +216,7 @@ grid.arrange(hist.slopes, hist.ints, nrow = 2)
 
 ```
 
-We see that the mean slope coefficient for day is -.024 and that most of the slopes fall in the -.1 to .1 range. Since zero is in this range, this may suggest that there is no time trend in pain in our data. The mean intercept (baseline pain) is 11.71. Most of these intercepts are in the range from 0 to 20. 
+We see that the mean slope coefficient for day is -.024 and that most of the slopes fall in the -.1 to .1 range. Since zero is in this range, this may suggest that there is no time trend in pain in our data. The mean intercept (baseline pain) is 11.71. Most of these intercepts are in the range from 0 to 20. The negative interecepts likely come from extrapolations from people with missing early observations. 
 
 ### d.) Are the slopes or intercepts related to any of the patient characteristics (age, race, income, treatment, sex,  occupation, working status, use of NSAIDs)?
 
@@ -309,9 +311,16 @@ hist.cor
 
 We see that the mean correlation is .12, which suggests that there is no linear relationship between average temperature and pain. The values are pretty widely spread between -1 and 1. The values with perfect positive (1) and negative (-1) correlation represents the people with only two measurements. 
 
+#  
+
+#
+
+
 # Problem 2
 
-### In the paper by Wang et al. (paper #10 in your syllabus), reproduce Table 2 using just the outcome data without trying to fit the mixed model. In other words, the differences at each time in the two treatment groups should be calculated just as a difference in means with a corresponding confidence interval. It is easist if you fit a simple linear model to produce the effects at each time for each difference compared to baseline. You can then also find the difference of the differences to compare treated and control.  
+### In the paper by Wang et al. (paper #10 in your syllabus), reproduce Table 2 using just the outcome data without trying to fit the mixed model. In other words, the differences at each time in the two treatment groups should be calculated just as a difference in means with a corresponding confidence interval. It is easist if you fit a simple linear model to produce the effects at each time for each difference compared to baseline. You can then also find the difference of the differences to compare treated and control. 
+
+To calculate the values in the table, we first put the data in long format. For each of the outcomes we ran three linear models. We used time as a categorical variable. To get column 1, we regress the outcome on time, for those in the Tai Chi group. To get column 2, we regressed the outcome on time, for those in the attention control group. To get the differences, we used an interaction term: we regressed the outcome on time + treatment + time * treatment. 
 
 ```{r, echo = FALSE}
 
@@ -426,3 +435,402 @@ group_rows(kabcomplete, index = grouprowslength, escape = F)
 
 
 ```
+
+#  
+
+# Appendix
+
+**Code for 1a:**
+
+```{r, message=FALSE, warning=FALSE, eval = FALSE, tidy = TRUE}
+
+### Load packages
+library(knitr)
+library(dplyr)
+library(readr)
+library(sjPlot)
+library(kableExtra)
+library(tidyr)
+library(ggplot2)
+library(gmodels)
+library(grid)
+library(stargazer)
+library(gridExtra)
+library(extrafont)
+library(extrafontdb)
+
+### Read in data
+mcalindon = read_csv("McAlindon_Big.csv")
+
+
+### Get only the first observation for each id
+first.ob = mcalindon %>%
+  group_by(ID) %>%
+  slice(1) %>%
+  ungroup()
+
+### Take the mean of each pain column and put it in the table "ave.pains"
+ave.pains = first.ob %>%
+  summarise(Mean_p1 = mean(pain.1, na.rm = TRUE),
+            Mean_p2 = mean(pain.2, na.rm = TRUE),
+            Mean_p3 = mean(pain.3, na.rm = TRUE),
+            Mean_p4 = mean(pain.4, na.rm = TRUE),
+            Mean_p5 = mean(pain.5, na.rm = TRUE),
+            Mean_p6 = mean(pain.6, na.rm = TRUE),
+            Mean_p7 = mean(pain.7, na.rm = TRUE))
+
+kable(ave.pains) %>%
+  kable_styling() %>% 
+  footnote(general = "Means for each period are calculated with NA values removed.")
+```
+
+**Code for 1b:**
+
+```{r, warning = FALSE, eval = FALSE, tidy = TRUE}
+
+### Regress each pain score on age
+painreg1 = lm(pain.1 ~ scale(age, scale = FALSE), data = first.ob)
+painreg2 = lm(pain.2 ~ scale(age, scale = FALSE), data = first.ob)
+painreg3 = lm(pain.3 ~ scale(age, scale = FALSE), data = first.ob)
+painreg4 = lm(pain.4 ~ scale(age, scale = FALSE), data = first.ob)
+painreg5 = lm(pain.5 ~ scale(age, scale = FALSE), data = first.ob)
+painreg6 = lm(pain.6 ~ scale(age, scale = FALSE), data = first.ob)
+painreg7 = lm(pain.7 ~ scale(age, scale = FALSE), data = first.ob)
+
+
+### Create summary tables using stargazer
+stargazer(painreg1,
+       painreg2,
+       painreg3, 
+       type = "latex",
+       ci = TRUE,
+       header = FALSE,
+       report = "vcsp*",
+       table.placement = "H" 
+       )
+
+stargazer(painreg4,
+       painreg5,
+       painreg6,
+       ci = TRUE,
+       header = FALSE,
+       report = "vcsp*",
+       table.placement = "H")
+
+stargazer(painreg7,
+       ci = TRUE,
+       header = FALSE,
+       report = "vcsp*",
+       table.placement = "H")
+
+```
+
+**Code for 1c:**
+
+```{r, warning = FALSE, message=FALSE, fig.width=10, fig.height=10, eval = FALSE, tidy = TRUE}
+
+
+### These functions put data in long format, then run regressions and pull out either the int
+### or the slope
+
+get.ints = function (p1, p2, p3, p4, p5, p6, p7, d1, d2, d3, d4, d5, d6, d7) {
+  
+  data.reg = data.frame(pain = c(p1,p2,p3,p4,p5,p6,p7),
+                        day = c(d1,d2,d3,d4,d5,d6,d7))
+  
+  reg = lm(pain ~ day, data = data.reg)
+  return(coef(reg)[1])
+  
+}
+
+get.slopes = function (p1, p2, p3, p4, p5, p6, p7, d1, d2, d3, d4, d5, d6, d7) {
+  
+  data.reg = data.frame(pain = c(p1,p2,p3,p4,p5,p6,p7),
+                        day = c(d1,d2,d3,d4,d5,d6,d7))
+  
+  reg = lm(pain ~ day, data = data.reg)
+  return(coef(reg)[2])
+  
+}
+
+indy.regs = first.ob %>% group_by(ID) %>%
+  mutate(slope = get.slopes(p1 = pain.1,
+                            p2 = pain.2,
+                            p3 = pain.3,
+                            p4 = pain.4,
+                            p5 = pain.5,
+                            p6 = pain.6,
+                            p7 = pain.7,
+                            d1 = lastdt1,
+                            d2 = lastdt2,
+                            d3 = lastdt3,
+                            d4 = lastdt4,
+                            d5 = lastdt5,
+                            d6 = lastdt6,
+                            d7 = lastdt7),
+         ints = get.ints(p1 = pain.1,
+                            p2 = pain.2,
+                            p3 = pain.3,
+                            p4 = pain.4,
+                            p5 = pain.5,
+                            p6 = pain.6,
+                            p7 = pain.7,
+                            d1 = lastdt1,
+                            d2 = lastdt2,
+                            d3 = lastdt3,
+                            d4 = lastdt4,
+                            d5 = lastdt5,
+                            d6 = lastdt6,
+                            d7 = lastdt7))
+
+
+### ggplot histograms for the slopes and coefficients
+
+hist.slopes = indy.regs %>%
+  ggplot(aes(x = slope)) + 
+  geom_histogram(bins = 20, color = "black", fill = "white") +
+  geom_vline(aes(xintercept=mean(indy.regs$slope, na.rm = TRUE),color="mean"),
+             linetype="dashed",
+             size=1) +
+  xlab("Slope Coefficient") +
+  ylab("Count") +
+  ggtitle("Histogram of Slope Coefficients for Day") +
+  theme_classic() +
+  scale_color_manual( labels = c(paste("Mean = ", round(mean(indy.regs$slope, na.rm = TRUE), digits = 3))), 
+                      name = "Legend: ", values = c(mean = "red")) +
+  theme(legend.position = "right") +
+  theme(text=element_text(size=14,  family="CM Sans"))
+
+hist.ints = indy.regs %>%
+  ggplot(aes(x = ints)) + 
+  geom_histogram(bins = 20, color = "black", fill = "white") +
+  geom_vline(aes(xintercept=mean(indy.regs$ints, na.rm = TRUE), color="mean"),
+             linetype="dashed",
+             size=1) +
+  xlab("Intercept Value") +
+  ylab("Count") +
+  ggtitle("Histogram of Intercepts") +
+  theme_classic() +
+  scale_color_manual( labels = c(paste("Mean = ", round(mean(indy.regs$ints, na.rm = TRUE), digits = 3))), 
+                      name = "Legend: ", values = c(mean = "red")) +
+  theme(legend.position = "right") +
+  theme(text=element_text(size=14,  family="CM Sans"))
+
+
+### Arrange the ggplots side by side
+grid.arrange(hist.slopes, hist.ints, nrow = 2)
+
+```
+
+**Code for 1d:**
+
+```{r, message=FALSE, eval = FALSE, warning=FALSE, tidy=TRUE}
+
+### Regress slopes and intercepts on patient characteristics
+slope.reg = lm(slope ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat + as.factor(sex) + nsaid +
+                as.factor(retire) + opiate + as.factor(severe2), data = indy.regs)
+
+int.reg = lm(ints ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat + as.factor(sex) + nsaid +
+                   as.factor(retire) + opiate + as.factor(severe2), data = indy.regs)
+
+### Use stargazer to make table
+stargazer(slope.reg, int.reg, 
+          font.size = "normalsize", 
+          single.row = TRUE, 
+          report = "vc*",
+          header = FALSE, 
+          table.placement = "H")
+
+```
+
+**Code for 1e:**
+```{r, message = FALSE, warning = FALSE, eval= FALSE, tidy=TRUE}
+
+### Split up the data so gather function doesnt get confused
+weather = mcalindon %>%
+  select(ID, WeatherDate, avgtemp)
+
+pains = mcalindon %>%
+  select(ID, pain.1, pain.2, pain.3, pain.4, pain.4, pain.5, pain.6, pain.7) %>%
+  group_by(ID) %>%
+  slice(1) 
+
+
+### Add an ID columns for joining
+pains = pains %>%
+  gather(key = pain.time, value = pain.score, pain.1:pain.7 ) %>%
+  group_by(ID) %>%
+  mutate( index = row_number(ID))
+
+days = mcalindon %>%
+  select(ID, lastdt1, lastdt2, lastdt3, lastdt4, lastdt5, lastdt6, lastdt7) %>%
+  group_by(ID) %>%
+  slice(1)
+
+days = days %>%
+  gather(key = time.name, value = day, lastdt1:lastdt7) %>%
+  mutate(index = row_number(ID))
+
+
+### Join the frams together
+pain.w.days = pains %>%
+  inner_join(days)
+
+pain.day.temp = pain.w.days %>%
+  rename(WeatherDate = day) %>%
+  inner_join(weather)
+
+
+### Calculate correlation
+pain.day.temp = pain.day.temp %>%
+  group_by(ID) %>%
+  mutate(correlation = cor(pain.score, avgtemp, use = "complete.obs"))
+
+
+only.cor = pain.day.temp %>%
+  select(ID, correlation) %>%
+  group_by(ID) %>%
+  slice(1)
+
+
+### ggplot histogram
+
+hist.cor = only.cor %>%
+  ggplot(aes(x = correlation)) +
+  geom_histogram(binwidth = .1, color = "black", fill = "white") +
+  geom_vline(aes(xintercept=mean(only.cor$correlation, na.rm = TRUE), color="mean"),
+             linetype="dashed",
+             size=1) +
+  xlab("Correlation") +
+  ylab("Count") +
+  ggtitle("Histogram:\nCorrelation Values Between Pain and Avg. Temperature") +
+  theme_classic() +
+  scale_color_manual( labels = c(paste("Mean = ", round(mean(only.cor$correlation, na.rm = TRUE), digits = 3))), 
+                      name = "Legend: ", values = c(mean = "red")) +
+  theme(legend.position = "right") +
+  labs(caption = "Note: individuals with only one observation are excluded (cannot calculate correlation)") +
+  theme(text=element_text(size=12,  family="CM Sans"))
+
+
+hist.cor
+
+```
+
+**Code for 2:**
+
+```{r, eval = FALSE, tidy = TRUE}
+
+### Vector of outcome names for looping over
+
+wang <- read.csv("Wang.csv")
+
+outcomes <- c("womac.pain.", "womac.phys.func.", "womac.stiff.", "physician.vas.", "pt.global.vas.", "walkyard.", "balance.", "chairstand.", "mcs.", "pcs.", "cesd.", "self.efficacy.")
+
+variables <- c("womac.pain.1", "womac.pain.2", "womac.pain.3", "womac.pain.4")
+
+tai_chi <- c()
+attention <- c()
+between <- c()
+
+### Get means and CIs for all outcomes over time
+
+for(i in outcomes) {
+
+  variables <- c(paste(i, 1, sep = ""), paste(i, 2, sep = ""), paste(i, 3, sep = ""), paste(i, 4, sep = ""))
+
+  long2 <- gather(wang, key = "time", value = "score", variables)
+
+  long2$time = as.factor(long2$time)
+
+  treated_model <- lm(score ~ time, data = long2[long2$group == 1, ])
+  untreated_model <- lm(score ~ time, data = long2[long2$group == 0, ])
+  difference_model <- lm(score ~ time + group + time:group, data = long2)
+
+  # estimate + CI for treated group
+
+  tai_chi <- rbind(tai_chi, cbind(treated_model$coefficients[-1], confint(treated_model)[-1,]))
+
+  # estimate + CI for untreated group
+
+  attention <- rbind(attention, cbind(untreated_model$coefficients[-1], confint(untreated_model)[-1,]))
+
+  # estimate, CI, p-value for difference of differences
+
+  between <- rbind(between, cbind(difference_model$coefficients[6:8], confint(difference_model)[6:8,], summary(difference_model)$coefficients[6:8,4]))
+
+}
+
+
+### Fancy kable styling
+CompleteTable <- cbind(tai_chi, attention, between)
+CompleteTable <- as_tibble(CompleteTable)
+names(CompleteTable) <- c("TMean", "TLower", "TUpper", "CMean", "CLower", "CUpper", "DMean", "DLower", "DUpper", "Pvalue")
+options(knitr.table.format = "latex")
+
+FormattedTable <- CompleteTable %>%
+  mutate_at(vars(1:ncol(CompleteTable)), funs(round(., 2)))
+
+FormattedTable <- FormattedTable %>%
+  mutate(CCI = paste0(CMean, " ", "(", CLower, ",", CUpper, ")"),
+         TCI = paste0(TMean, " ", "(", TLower, ",", TUpper, ")"),
+         DCI = paste0(DMean, " ", "(", DLower, ",", DUpper, ")"))
+
+FormattedTable <- FormattedTable %>% mutate(Variable = rep(c("Week 12", "Week 24" , "Week 48"), 12))
+FormattedTable <- FormattedTable %>% select(Variable, TCI, CCI, DCI, Pvalue)
+
+##Add all of the footnote symbols to the variables.
+FormattedTable$TCI[16] <- paste0(FormattedTable$TCI[16], footnote_marker_symbol(6, double_escape = F))##
+#FormattedTable$TCI[c(17,18, 22, 23, 24)] <- #§
+FormattedTable$TCI[17] <- paste0(FormattedTable$TCI[17], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$TCI[18] <- paste0(FormattedTable$TCI[18], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$TCI[22] <- paste0(FormattedTable$TCI[22], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$TCI[23] <- paste0(FormattedTable$TCI[23], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$TCI[24] <- paste0(FormattedTable$TCI[24], footnote_marker_symbol(4, double_escape = F))
+
+FormattedTable$CCI[24] <- paste0(FormattedTable$CCI[24], footnote_marker_symbol(6, double_escape = F))##
+#FormattedTable$CCI[c(12, 18, 21, 22, 23)] <- #§
+FormattedTable$CCI[12] <- paste0(FormattedTable$CCI[12], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$CCI[18] <- paste0(FormattedTable$CCI[18], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$CCI[21] <- paste0(FormattedTable$CCI[21], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$CCI[22] <- paste0(FormattedTable$CCI[22], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$CCI[23] <- paste0(FormattedTable$CCI[23], footnote_marker_symbol(4, double_escape = F))
+
+##Group Rows Length and Names Vector
+grouprowslength <- c(3,3,3,3,3,3,3,3,3,3,3,3)
+grouprowsnames <- linebreak(c(paste0("Primary outcome: WOMAC pain: (range 0-500 mm)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("Secondary outcomes \n WOMAC physical function (range 0-1,700 mm)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("WOMAC stiffness (range 0-200 mm)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("Physician VAS (range 0-10 cm)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("Patient global VAS (range 0-10 cm)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("6-minute walk test, yards", footnote_marker_symbol(5, double_escape = T)),
+                       paste0("Balance score (range 0-5)", footnote_marker_symbol(5, double_escape = T)),
+                       paste0("Chair stand time, seconds", footnote_marker_symbol(3, double_escape = T)),
+                       #paste0("Body mass index, kg/m2"),
+                       paste0("SF-36 MCS (range 0-100)", footnote_marker_symbol(5, double_escape = T)),
+                       paste0("SF-36 PCS (range 0-100)", footnote_marker_symbol(5, double_escape = T)),
+                       paste0("CES-D (range 0-60)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("Self-efficacy score (range 1-5)", footnote_marker_symbol(5, double_escape = T))), double_escape = T)
+names(grouprowslength) <- grouprowsnames
+
+firstheader <- c(1,1,1,1,1)
+names(firstheader) <- linebreak(c("Variable", "Tai Chi\n(n = 20)", "Attention Control\n(n = 20)",
+                     "Between-group\ndifferences, Tai Chi\nvs. attention control", paste0("P", footnote_marker_symbol(2, double_escape = T))), double_escape = T)
+kabcomplete <- kable(FormattedTable, "latex", digits = 5, col.names = NULL,
+      booktabs = T, longtable = T, linesep = "", escape = F,
+      caption = paste0("Changes in primary and secondary outcomes",  footnote_marker_symbol(1))) %>%
+  kable_styling(bootstrap_options = "condensed", full_width = F, latex_options = "hold_position") %>%
+  add_header_above(firstheader, escape = F) %>%
+  add_header_above(c(" " = 1, "Improvement from baseline" = 2,
+                     " " = 2)) %>%
+  footnote(symbol = c("Values are the mean (95 Confidence interval). WOMAC  Western Ontario and McMaster Universities Osteoarthritis Index; VAS  visual analog
+                      scale; SF-36  Short Form 36 health survey; MCS  mental component summary; PCS  physical component summary; CES-D  Center for Epidemiologic
+                      Studies Depression Scale.", "P values were calculated by t-test for continuous variables.", "Lower scores indicate improved state.",
+                      "N = 19", "Higher scores indicate improved state.", "N = 18."), escape = F,
+           threeparttable = T)
+
+
+group_rows(kabcomplete, index = grouprowslength, escape = F)
+
+
+```
+
