@@ -1,13 +1,13 @@
 ---
 title: "PHP 2550: Assignment 1"
-author: "Blain Morin"
-date: "September 13, 2018"
+author: "Blain Morin  \nGroup: Jessica Kaminsky and Derrick Yam"
+date: "September 26, 2018"
 output: 
-  html_document:
-    theme: "flatly"
+  pdf_document: 
+    latex_engine: xelatex
 ---
 
-```{r, include=FALSE}
+```{r, include=FALSE, message = FALSE}
 
 ### Load packages
 library(knitr)
@@ -19,7 +19,10 @@ library(tidyr)
 library(ggplot2)
 library(gmodels)
 library(grid)
+library(stargazer)
 library(gridExtra)
+library(extrafont)
+library(extrafontdb)
 
 ```
 
@@ -28,14 +31,14 @@ library(gridExtra)
 
 **First we construct a data set with just the first observation for each individual:**
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 
 ### Read in data
 mcalindon = read_csv("McAlindon_Big.csv")
 
 ```
 
-```{r}
+```{r, echo = FALSE}
 
 ### Get only the first observation for each id
 first.ob = mcalindon %>%
@@ -47,17 +50,17 @@ first.ob = mcalindon %>%
 
 ### a.) Summarize the average pain score for each of the 7 days of the study.
 
-```{r}
+```{r, echo = FALSE}
 
 ### Take the mean of each pain column and put it in the table "ave.pains"
 ave.pains = first.ob %>%
-  summarise(mean.p1 = mean(pain.1, na.rm = TRUE),
-            mean.p2 = mean(pain.2, na.rm = TRUE),
-            mean.p3 = mean(pain.3, na.rm = TRUE),
-            mean.p4 = mean(pain.4, na.rm = TRUE),
-            mean.p5 = mean(pain.5, na.rm = TRUE),
-            mean.p6 = mean(pain.6, na.rm = TRUE),
-            mean.p7 = mean(pain.7, na.rm = TRUE))
+  summarise(Mean_p1 = mean(pain.1, na.rm = TRUE),
+            Mean_p2 = mean(pain.2, na.rm = TRUE),
+            Mean_p3 = mean(pain.3, na.rm = TRUE),
+            Mean_p4 = mean(pain.4, na.rm = TRUE),
+            Mean_p5 = mean(pain.5, na.rm = TRUE),
+            Mean_p6 = mean(pain.6, na.rm = TRUE),
+            Mean_p7 = mean(pain.7, na.rm = TRUE))
 
 ```
 
@@ -71,7 +74,7 @@ kable(ave.pains) %>%
 
 ### b.) Regress each pain score on age and use the summary function to create a summary table for each regression. Then use the confint function to find the 95% confidence interval for the regression slopes and produce a table with the estimates, standard errors, p-values and confidence intervals of the 7 slopes and put these in a single table.
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, echo = FALSE}
 
 ### Regress each pain score on age
 painreg1 = lm(pain.1 ~ age, data = first.ob)
@@ -86,27 +89,31 @@ painreg7 = lm(pain.7 ~ age, data = first.ob)
 
 **Here are estimates, standard errors, p-values and confidence intervals for each of the regressions:**
 
-```{r, message=FALSE, echo=FALSE, warning=FALSE}
-sjt.lm(painreg1,
-       painreg2,
-       painreg3,
-       show.se = TRUE,
-       show.r2 = FALSE)
+```{r, message=FALSE, echo=FALSE, warning=FALSE, results="asis"}
 
-sjt.lm(painreg4,
+stargazer(painreg1,
+       painreg2,
+       painreg3, 
+       type = "latex",
+       ci = TRUE,
+       header = FALSE
+       )
+
+stargazer(painreg4,
        painreg5,
        painreg6,
-       show.se = TRUE,
-       show.r2 = FALSE)
+       ci = TRUE,
+       header = FALSE)
 
-sjt.lm(painreg7,
-       show.se = TRUE,
-       show.r2 = FALSE)
+stargazer(painreg7,
+       ci = TRUE,
+       header = FALSE)
+
 ```
 
 ### c.) For each individual fit a regression of pain on time. Summarize the slopes and intercepts produced. 
 
-```{r, warning = FALSE, message=FALSE, fig.width=10, fig.height=10}
+```{r, warning = FALSE, message=FALSE, fig.width=10, fig.height=10, echo = FALSE}
 
 get.ints = function (p1, p2, p3, p4, p5, p6, p7, d1, d2, d3, d4, d5, d6, d7) {
   
@@ -160,31 +167,33 @@ indy.regs = first.ob %>% group_by(ID) %>%
 
 hist.slopes = indy.regs %>%
   ggplot(aes(x = slope)) + 
-  geom_histogram(bins = 20) +
+  geom_histogram(bins = 20, color = "black", fill = "white") +
   geom_vline(aes(xintercept=mean(indy.regs$slope, na.rm = TRUE),color="mean"),
              linetype="dashed",
              size=1) +
   xlab("Slope Coefficient") +
   ylab("Count") +
   ggtitle("Histogram of Slope Coefficients") +
-  theme_minimal() +
+  theme_classic() +
   scale_color_manual( labels = c(paste("Mean = ", round(mean(indy.regs$slope, na.rm = TRUE), digits = 3))), 
                       name = "Legend: ", values = c(mean = "red")) +
-  theme(legend.position = "right")
+  theme(legend.position = "right") +
+  theme(text=element_text(size=14,  family="CM Sans"))
 
 hist.ints = indy.regs %>%
   ggplot(aes(x = ints)) + 
-  geom_histogram(bins = 20) +
+  geom_histogram(bins = 20, color = "black", fill = "white") +
   geom_vline(aes(xintercept=mean(indy.regs$ints, na.rm = TRUE), color="mean"),
              linetype="dashed",
              size=1) +
   xlab("Intercept Value") +
   ylab("Count") +
   ggtitle("Histogram of Intercepts") +
-  theme_minimal() +
+  theme_classic() +
   scale_color_manual( labels = c(paste("Mean = ", round(mean(indy.regs$ints, na.rm = TRUE), digits = 3))), 
                       name = "Legend: ", values = c(mean = "red")) +
-  theme(legend.position = "right")
+  theme(legend.position = "right") +
+  theme(text=element_text(size=14,  family="CM Sans"))
 
 grid.arrange(hist.slopes, hist.ints, nrow = 2)
 
@@ -192,7 +201,7 @@ grid.arrange(hist.slopes, hist.ints, nrow = 2)
 
 ### d.) Are the slopes or intercepts related to any of the patient characteristics (age, race, income, treatment, sex,  occupation, working status, use of NSAIDs)?
 
-```{r}
+```{r, message=FALSE, echo=FALSE, warning=FALSE, results="asis"}
 
 slope.reg = lm(slope ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat + as.factor(sex) + nsaid +
                 as.factor(retire) + opiate + as.factor(severe2), data = indy.regs)
@@ -200,14 +209,13 @@ slope.reg = lm(slope ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat +
 int.reg = lm(ints ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat + as.factor(sex) + nsaid +
                    as.factor(retire) + opiate + as.factor(severe2), data = indy.regs)
 
-
-sjt.lm(slope.reg, int.reg)
+stargazer(slope.reg, int.reg, font.size = "tiny", header = FALSE)
 
 ```
 
 ### e.) For each individual, compute the correlation between pain scores and average temperature on the dates the pain scores were taken and constuct a graph to display these correlations. Discuss whether pain is correlated with temperature.
 
-```{r, message = FALSE, warning = FALSE}
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
 
 weather = mcalindon %>%
   select(ID, WeatherDate, avgtemp)
@@ -250,18 +258,19 @@ only.cor = pain.day.temp %>%
 
 hist.cor = only.cor %>%
   ggplot(aes(x = correlation)) +
-  geom_histogram(binwidth = .1) +
+  geom_histogram(binwidth = .1, color = "black", fill = "white") +
   geom_vline(aes(xintercept=mean(only.cor$correlation, na.rm = TRUE), color="mean"),
              linetype="dashed",
              size=1) +
   xlab("Correlation") +
   ylab("Count") +
-  ggtitle("Histogram: Correlation values between Pain and Avg. Temperature") +
-  theme_minimal() +
+  ggtitle("Histogram:\nCorrelation values between Pain and Avg. Temperature") +
+  theme_classic() +
   scale_color_manual( labels = c(paste("Mean = ", round(mean(only.cor$correlation, na.rm = TRUE), digits = 3))), 
                       name = "Legend: ", values = c(mean = "red")) +
   theme(legend.position = "right") +
-  labs(caption = "Note: individuals with only one observation are excluded (cannot calculate correlation)")
+  labs(caption = "Note: individuals with only\none observation are excluded (cannot calculate correlation)") +
+  theme(text=element_text(size=12,  family="CM Sans"))
 
 
 hist.cor
@@ -272,10 +281,116 @@ hist.cor
 
 ### In the paper by Wang et al. (paper #10 in your syllabus), reproduce Table 2 using just the outcome data without trying to fit the mixed model. In other words, the differences at each time in the two treatment groups should be calculated just as a difference in means with a corresponding confidence interval. It is easist if you fit a simple linear model to produce the effects at each time for each difference compared to baseline. You can then also find the difference of the differences to compare treated and control.  
 
-```{r}
+```{r, echo = FALSE}
 
-wang <- read_csv("Wang.csv")
+wang <- read.csv("Wang.csv")
 
-### need to put in long format!
+outcomes <- c("womac.pain.", "womac.phys.func.", "womac.stiff.", "physician.vas.", "pt.global.vas.", "walkyard.", "balance.", "chairstand.", "mcs.", "pcs.", "cesd.", "self.efficacy.")
+
+variables <- c("womac.pain.1", "womac.pain.2", "womac.pain.3", "womac.pain.4")
+
+tai_chi <- c()
+attention <- c()
+between <- c()
+
+for(i in outcomes) {
+
+  variables <- c(paste(i, 1, sep = ""), paste(i, 2, sep = ""), paste(i, 3, sep = ""), paste(i, 4, sep = ""))
+
+  long2 <- gather(wang, key = "time", value = "score", variables)
+
+  long2$time = as.factor(long2$time)
+
+  treated_model <- lm(score ~ time, data = long2[long2$group == 1, ])
+  untreated_model <- lm(score ~ time, data = long2[long2$group == 0, ])
+  difference_model <- lm(score ~ time + group + time:group, data = long2)
+
+  # estimate + CI for treated group
+
+  tai_chi <- rbind(tai_chi, cbind(treated_model$coefficients[-1], confint(treated_model)[-1,]))
+
+  # estimate + CI for untreated group
+
+  attention <- rbind(attention, cbind(untreated_model$coefficients[-1], confint(untreated_model)[-1,]))
+
+  # estimate, CI, p-value for difference of differences
+
+  between <- rbind(between, cbind(difference_model$coefficients[6:8], confint(difference_model)[6:8,], summary(difference_model)$coefficients[6:8,4]))
+
+}
+
+```
+
+```{r, echo = FALSE, size = "tiny", escape = FALSE}
+
+CompleteTable <- cbind(tai_chi, attention, between)
+CompleteTable <- as_tibble(CompleteTable)
+names(CompleteTable) <- c("TMean", "TLower", "TUpper", "CMean", "CLower", "CUpper", "DMean", "DLower", "DUpper", "Pvalue")
+options(knitr.table.format = "latex")
+
+FormattedTable <- CompleteTable %>%
+  mutate_at(vars(1:ncol(CompleteTable)), funs(round(., 2)))
+
+FormattedTable <- FormattedTable %>%
+  mutate(CCI = paste0(CMean, " ", "(", CLower, ",", CUpper, ")"),
+         TCI = paste0(TMean, " ", "(", TLower, ",", TUpper, ")"),
+         DCI = paste0(DMean, " ", "(", DLower, ",", DUpper, ")"))
+
+FormattedTable <- FormattedTable %>% mutate(Variable = rep(c("Week 12", "Week 24" , "Week 48"), 12))
+FormattedTable <- FormattedTable %>% select(Variable, TCI, CCI, DCI, Pvalue)
+
+##Add all of the footnote symbols to the variables.
+FormattedTable$TCI[16] <- paste0(FormattedTable$TCI[16], footnote_marker_symbol(6, double_escape = F))##
+#FormattedTable$TCI[c(17,18, 22, 23, 24)] <- #§
+FormattedTable$TCI[17] <- paste0(FormattedTable$TCI[17], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$TCI[18] <- paste0(FormattedTable$TCI[18], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$TCI[22] <- paste0(FormattedTable$TCI[22], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$TCI[23] <- paste0(FormattedTable$TCI[23], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$TCI[24] <- paste0(FormattedTable$TCI[24], footnote_marker_symbol(4, double_escape = F))
+
+FormattedTable$CCI[24] <- paste0(FormattedTable$CCI[24], footnote_marker_symbol(6, double_escape = F))##
+#FormattedTable$CCI[c(12, 18, 21, 22, 23)] <- #§
+FormattedTable$CCI[12] <- paste0(FormattedTable$CCI[12], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$CCI[18] <- paste0(FormattedTable$CCI[18], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$CCI[21] <- paste0(FormattedTable$CCI[21], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$CCI[22] <- paste0(FormattedTable$CCI[22], footnote_marker_symbol(4, double_escape = F))
+FormattedTable$CCI[23] <- paste0(FormattedTable$CCI[23], footnote_marker_symbol(4, double_escape = F))
+
+##Group Rows Length and Names Vector
+grouprowslength <- c(3,3,3,3,3,3,3,3,3,3,3,3)
+grouprowsnames <- linebreak(c(paste0("Primary outcome: WOMAC pain: (range 0-500 mm)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("Secondary outcomes \n WOMAC physical function (range 0-1,700 mm)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("WOMAC stiffness (range 0-200 mm)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("Physician VAS (range 0-10 cm)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("Patient global VAS (range 0-10 cm)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("6-minute walk test, yards", footnote_marker_symbol(5, double_escape = T)),
+                       paste0("Balance score (range 0-5)", footnote_marker_symbol(5, double_escape = T)),
+                       paste0("Chair stand time, seconds", footnote_marker_symbol(3, double_escape = T)),
+                       #paste0("Body mass index, kg/m2"),
+                       paste0("SF-36 MCS (range 0-100)", footnote_marker_symbol(5, double_escape = T)),
+                       paste0("SF-36 PCS (range 0-100)", footnote_marker_symbol(5, double_escape = T)),
+                       paste0("CES-D (range 0-60)", footnote_marker_symbol(3, double_escape = T)),
+                       paste0("Self-efficacy score (range 1-5)", footnote_marker_symbol(5, double_escape = T))), double_escape = T)
+names(grouprowslength) <- grouprowsnames
+
+firstheader <- c(1,1,1,1,1)
+names(firstheader) <- linebreak(c("Variable", "Tai Chi\n(n = 20)", "Attention Control\n(n = 20)",
+                     "Between-group\ndifferences, Tai Chi\nvs. attention control", paste0("P", footnote_marker_symbol(2, double_escape = T))), double_escape = T)
+kabcomplete <- kable(FormattedTable, "latex", digits = 5, col.names = NULL,
+      booktabs = T, longtable = T, linesep = "", escape = F,
+      caption = paste0("Changes in primary and secondary outcomes",  footnote_marker_symbol(1))) %>%
+  kable_styling(bootstrap_options = "condensed", full_width = F, latex_options = "hold_position") %>%
+  add_header_above(firstheader, escape = F) %>%
+  add_header_above(c(" " = 1, "Improvement from baseline" = 2,
+                     " " = 2)) %>%
+  footnote(symbol = c("Values are the mean (95 Confidence interval). WOMAC  Western Ontario and McMaster Universities Osteoarthritis Index; VAS  visual analog
+                      scale; SF-36  Short Form 36 health survey; MCS  mental component summary; PCS  physical component summary; CES-D  Center for Epidemiologic
+                      Studies Depression Scale.", "P values were calculated by t-test for continuous variables.", "Lower scores indicate improved state.",
+                      "N = 19", "Higher scores indicate improved state.", "N = 18."), escape = F,
+           threeparttable = T)
+
+
+group_rows(kabcomplete, index = grouprowslength, escape = F)
+
 
 ```
