@@ -8,6 +8,7 @@ output:
 ---
 
 ```{r, include=FALSE, message = FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
 
 ### Load packages
 library(knitr)
@@ -29,8 +30,6 @@ library(extrafontdb)
 
 # Problem #1
 
-**First we construct a data set with just the first observation for each individual:**
-
 ```{r, message=FALSE, warning=FALSE, echo = FALSE}
 
 ### Read in data
@@ -50,6 +49,8 @@ first.ob = mcalindon %>%
 
 ### a.) Summarize the average pain score for each of the 7 days of the study.
 
+First we constructed a data set with only the first observation for each individual. We then calculated the mean for each of the seven periods.  
+
 ```{r, echo = FALSE}
 
 ### Take the mean of each pain column and put it in the table "ave.pains"
@@ -64,7 +65,8 @@ ave.pains = first.ob %>%
 
 ```
 
-**Here are the average pain measurements for each of the seven periods:**
+Here are the average pain measurements for each of the seven periods:
+
 
 ```{r, echo = FALSE}
 kable(ave.pains) %>%
@@ -72,22 +74,24 @@ kable(ave.pains) %>%
   footnote(general = "Means for each period are calculated with NA values removed.")
 ```
 
+From a visual inspection, it appears that the average pain score is decreasing over time. 
+
 ### b.) Regress each pain score on age and use the summary function to create a summary table for each regression. Then use the confint function to find the 95% confidence interval for the regression slopes and produce a table with the estimates, standard errors, p-values and confidence intervals of the 7 slopes and put these in a single table.
 
 ```{r, warning = FALSE, echo = FALSE}
 
 ### Regress each pain score on age
-painreg1 = lm(pain.1 ~ age, data = first.ob)
-painreg2 = lm(pain.2 ~ age, data = first.ob)
-painreg3 = lm(pain.3 ~ age, data = first.ob)
-painreg4 = lm(pain.4 ~ age, data = first.ob)
-painreg5 = lm(pain.5 ~ age, data = first.ob)
-painreg6 = lm(pain.6 ~ age, data = first.ob)
-painreg7 = lm(pain.7 ~ age, data = first.ob)
+painreg1 = lm(pain.1 ~ scale(age, scale = FALSE), data = first.ob)
+painreg2 = lm(pain.2 ~ scale(age, scale = FALSE), data = first.ob)
+painreg3 = lm(pain.3 ~ scale(age, scale = FALSE), data = first.ob)
+painreg4 = lm(pain.4 ~ scale(age, scale = FALSE), data = first.ob)
+painreg5 = lm(pain.5 ~ scale(age, scale = FALSE), data = first.ob)
+painreg6 = lm(pain.6 ~ scale(age, scale = FALSE), data = first.ob)
+painreg7 = lm(pain.7 ~ scale(age, scale = FALSE), data = first.ob)
 
 ```
 
-**Here are estimates, standard errors, p-values and confidence intervals for each of the regressions:**
+We first centered age so that the intercept would have an interpretation. We then regressed each of the pain scores on the centered age using a simple linear model. Tables 1-3 contain the estimates, standard errors, p-values and confidence intervals for each of the seven regressions:
 
 ```{r, message=FALSE, echo=FALSE, warning=FALSE, results="asis"}
 
@@ -96,22 +100,33 @@ stargazer(painreg1,
        painreg3, 
        type = "latex",
        ci = TRUE,
-       header = FALSE
+       header = FALSE,
+       report = "vcsp*",
+       table.placement = "H" 
        )
 
 stargazer(painreg4,
        painreg5,
        painreg6,
        ci = TRUE,
-       header = FALSE)
+       header = FALSE,
+       report = "vcsp*",
+       table.placement = "H")
 
 stargazer(painreg7,
        ci = TRUE,
-       header = FALSE)
+       header = FALSE,
+       report = "vcsp*",
+       table.placement = "H")
 
 ```
 
+
+The constant is the average pain score for the mean age. Notice that this matches the values from part (a). The coefficient for age can be interpretted as the average decrease in pain for each additional year. The age coefficient is only significant at the 10% level for time period 5 and 7. 
+
 ### c.) For each individual fit a regression of pain on time. Summarize the slopes and intercepts produced. 
+
+First we put the data in long format. Then, we grouped it by individuals and ran individual regressions (pain regressed on day) for each person. The intercept is interpretted as the pain at baseline. The day coefficient is the average increase or decrease in pain per day. Here are the histograms for the intercepts and day coefficients: 
 
 ```{r, warning = FALSE, message=FALSE, fig.width=10, fig.height=10, echo = FALSE}
 
@@ -173,7 +188,7 @@ hist.slopes = indy.regs %>%
              size=1) +
   xlab("Slope Coefficient") +
   ylab("Count") +
-  ggtitle("Histogram of Slope Coefficients") +
+  ggtitle("Histogram of Slope Coefficients for Day") +
   theme_classic() +
   scale_color_manual( labels = c(paste("Mean = ", round(mean(indy.regs$slope, na.rm = TRUE), digits = 3))), 
                       name = "Legend: ", values = c(mean = "red")) +
@@ -199,7 +214,11 @@ grid.arrange(hist.slopes, hist.ints, nrow = 2)
 
 ```
 
+We see that the mean slope coefficient for day is -.024 and that most of the slopes fall in the -.1 to .1 range. Since zero is in this range, this may suggest that there is no time trend in pain in our data. The mean intercept (baseline pain) is 11.71. Most of these intercepts are in the range from 0 to 20. 
+
 ### d.) Are the slopes or intercepts related to any of the patient characteristics (age, race, income, treatment, sex,  occupation, working status, use of NSAIDs)?
+
+We used linear regression to check if any of the patient characteristics were related to the slope and the intercept. For these regressions, we were careful to code the categorical variables as factors. Table 4 contains our regression results:
 
 ```{r, message=FALSE, echo=FALSE, warning=FALSE, results="asis"}
 
@@ -209,11 +228,22 @@ slope.reg = lm(slope ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat +
 int.reg = lm(ints ~ as.factor(Race) + age + as.factor(inccat) + bmi + treat + as.factor(sex) + nsaid +
                    as.factor(retire) + opiate + as.factor(severe2), data = indy.regs)
 
-stargazer(slope.reg, int.reg, font.size = "tiny", header = FALSE)
+stargazer(slope.reg, int.reg, 
+          font.size = "normalsize", 
+          single.row = TRUE, 
+          report = "vc*",
+          header = FALSE, 
+          table.placement = "H")
 
 ```
 
+The only variable that came back significant at the .05 level for the slope regression was income level two. Income level 2 represents incomes in the range of 15 to 35 thousand. The reference category is level 1. Thus, the interpretation for this coefficient is that the average increase in pain over time was .043 higher for those in income category 2 compared to those in category 1, all else equal. 
+
+The only variable that had a significant effect at the .05 level on the intercept was age. The direction of the effect is the opposite of what we would expect. However, the effect size is relatively small compared to the range of baseline pains. We can interpret this coefficient as follows: For each additional year of age, the average baseline pain measurement was .428 less, all else equal. 
+
 ### e.) For each individual, compute the correlation between pain scores and average temperature on the dates the pain scores were taken and constuct a graph to display these correlations. Discuss whether pain is correlated with temperature.
+
+To answer this question, we put the data in long format and joined it with the average temperature for each indivual on the day that the pain score was taken. Here is a histogram of the calculated correlations: 
 
 ```{r, message = FALSE, warning = FALSE, echo = FALSE}
 
@@ -264,18 +294,20 @@ hist.cor = only.cor %>%
              size=1) +
   xlab("Correlation") +
   ylab("Count") +
-  ggtitle("Histogram:\nCorrelation values between Pain and Avg. Temperature") +
+  ggtitle("Histogram:\nCorrelation Values Between Pain and Avg. Temperature") +
   theme_classic() +
   scale_color_manual( labels = c(paste("Mean = ", round(mean(only.cor$correlation, na.rm = TRUE), digits = 3))), 
                       name = "Legend: ", values = c(mean = "red")) +
   theme(legend.position = "right") +
-  labs(caption = "Note: individuals with only\none observation are excluded (cannot calculate correlation)") +
+  labs(caption = "Note: individuals with only one observation are excluded (cannot calculate correlation)") +
   theme(text=element_text(size=12,  family="CM Sans"))
 
 
 hist.cor
 
 ```
+
+We see that the mean correlation is .12, which suggests that there is no linear relationship between average temperature and pain. The values are pretty widely spread between -1 and 1. The values with perfect positive (1) and negative (-1) correlation represents the people with only two measurements. 
 
 # Problem 2
 
